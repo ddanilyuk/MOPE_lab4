@@ -2,4 +2,4 @@
 
 ## Варіант 207
 
-![image](images/1.png)
+![image](/lab4/images/1.png)
