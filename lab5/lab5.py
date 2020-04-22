@@ -155,13 +155,13 @@ def getMatrix(n, m, typeMatrix = 0):
         return x_norm_standart, x_nat_standart, y
     elif typeMatrix == 1:
         fieldNames = ["X0", "X1", "X2", "X3", "X12", "X13", "X23", "X123"] + yFieldNames
-        printMatrix("Нормована матриця планування з ефектом взаємодії нормована", np.concatenate((x_norm_vzaemodia, y), axis=1), fieldNames)
-        printMatrix("Натуралізована матриця планування з ефектом взаємодії натуралізована", np.concatenate((x_nat_standart, x_nat_vzaemodia, y), axis=1), fieldNames)
+        printMatrix("Нормована матриця планування з ефектом взаємодії", np.concatenate((x_norm_vzaemodia, y), axis=1), fieldNames)
+        printMatrix("Натуралізована матриця планування з ефектом взаємодії", np.concatenate((x_nat_standart, x_nat_vzaemodia, y), axis=1), fieldNames)
         return x_norm_vzaemodia, np.concatenate((x_nat_standart, x_nat_vzaemodia), axis=1), y
     else:
         fieldNames = ["X0", "X1", "X2", "X3", "X12", "X13", "X23", "X123", "X1^2", "X2^2", "X3^2"] + yFieldNames
-        printMatrix("Нормована матриця планування з ефектом взаємодії та квадратних коренів нормована", np.concatenate((x_norm_kv, yFull), axis=1), fieldNames)
-        printMatrix("Натуралізована матриця планування з ефектом взаємодії та квадратних коренів натуралізована", np.concatenate((x_nat_kv_1, x_nat_kv_2, yFull), axis=1), fieldNames)
+        printMatrix("Нормована матриця планування з ефектом взаємодії та квадратних коренів", np.concatenate((x_norm_kv, yFull), axis=1), fieldNames)
+        printMatrix("Натуралізована матриця планування з ефектом взаємодії та квадратних коренів", np.concatenate((x_nat_kv_1, x_nat_kv_2, yFull), axis=1), fieldNames)
         return x_norm_kv, np.concatenate((x_nat_kv_1, x_nat_kv_2), axis=1), yFull
 
 
@@ -312,6 +312,7 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
             else:
                 d += 1
         
+        print("")
         # Критерії які підходять
         Y_counted_for_Student = [] 
 
@@ -338,7 +339,7 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
                 # Якщо вже було спробувано ефект взаємодії та квадратних членів повернутися на початок
                 main(m, False, False)
             else:
-                print("Спробуємо ефект взаємодії + квадратних членів")
+                print("\nСпробуємо ефект взаємодії + квадратних членів")
                 main(m, effectVzaemodiyAndKv, True)
         else:   
             print("МОДЕЛЬ АДЕКВАТНА")
