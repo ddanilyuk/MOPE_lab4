@@ -150,18 +150,18 @@ def getMatrix(n, m, typeMatrix = 0):
 
     if typeMatrix == 0:
         fieldNames = ["X0", "X1", "X2", "X3"] + yFieldNames
-        printMatrix("Матриця планування звичайна нормована", np.concatenate((x_norm_standart, y), axis=1), fieldNames)
-        printMatrix("Матриця планування звичайна натуралізована", np.concatenate((x_nat_standart, y), axis=1), fieldNames)
+        printMatrix("Нормована матриця планування лінійної форми", np.concatenate((x_norm_standart, y), axis=1), fieldNames)
+        printMatrix("Натуралізована матриця планування лінійної форми", np.concatenate((x_nat_standart, y), axis=1), fieldNames)
         return x_norm_standart, x_nat_standart, y
     elif typeMatrix == 1:
         fieldNames = ["X0", "X1", "X2", "X3", "X12", "X13", "X23", "X123"] + yFieldNames
-        printMatrix("Матриця планування з ефектом взаємодії нормована", np.concatenate((x_norm_vzaemodia, y), axis=1), fieldNames)
-        printMatrix("Матриця планування з ефектом взаємодії натуралізована", np.concatenate((x_nat_standart, x_nat_vzaemodia, y), axis=1), fieldNames)
+        printMatrix("Нормована матриця планування з ефектом взаємодії нормована", np.concatenate((x_norm_vzaemodia, y), axis=1), fieldNames)
+        printMatrix("Натуралізована матриця планування з ефектом взаємодії натуралізована", np.concatenate((x_nat_standart, x_nat_vzaemodia, y), axis=1), fieldNames)
         return x_norm_vzaemodia, np.concatenate((x_nat_standart, x_nat_vzaemodia), axis=1), y
     else:
         fieldNames = ["X0", "X1", "X2", "X3", "X12", "X13", "X23", "X123", "X1^2", "X2^2", "X3^2"] + yFieldNames
-        printMatrix("Матриця планування з ефектом квадратних коренів нормована", np.concatenate((x_norm_kv, yFull), axis=1), fieldNames)
-        printMatrix("Матриця планування з ефектом квадратних коренів натуралізована", np.concatenate((x_nat_kv_1, x_nat_kv_2, yFull), axis=1), fieldNames)
+        printMatrix("Нормована матриця планування з ефектом взаємодії та квадратних коренів нормована", np.concatenate((x_norm_kv, yFull), axis=1), fieldNames)
+        printMatrix("Натуралізована матриця планування з ефектом взаємодії та квадратних коренів натуралізована", np.concatenate((x_nat_kv_1, x_nat_kv_2, yFull), axis=1), fieldNames)
         return x_norm_kv, np.concatenate((x_nat_kv_1, x_nat_kv_2), axis=1), yFull
 
 
