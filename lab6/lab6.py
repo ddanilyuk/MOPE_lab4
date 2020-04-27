@@ -280,7 +280,7 @@ def main(m, iteration, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv =
         N = 14
 
     # Нормовані, натуралізовані значенння X, та Y
-    x_norm, x_nat, y = getMatrix(N, m, matrixType)
+    _, x_nat, y = getMatrix(N, m, matrixType)
 
     # Середнє значення Y
     y_average = getYAverage(y)
