@@ -3,7 +3,7 @@ import numpy as np
 from numpy.linalg import solve
 from scipy.stats import f, t
 from functools import partial
-from random import randint
+import random as r
 from prettytable import PrettyTable
 import sklearn.linear_model as lm
 
@@ -13,18 +13,20 @@ np.set_printoptions(suppress=True)
 m = 3
 N = 8
 
-X1max = 8
+# X1max = 8
+# X1min = -5
+# X2max = 4
+# X2min = -7
+# X3max = 4
+# X3min = -10
+X1max = 15
 X1min = -5
-X2max = 4
-X2min = -7
-X3max = 4
-X3min = -10
-# X1max = 4
-# X1min = -7
-# X2max = 10
-# X2min = -6
-# X3max = 1
-# X3min = -8
+X2max = 10
+X2min = -35
+X3max = -10
+X3min = -35
+
+maximumIteration = 100
 
 
 Xmax_average = (X1max + X2max + X3max) / 3
@@ -41,7 +43,7 @@ def getMatrix(n, m, typeMatrix = 0):
     Функція для знаходження нормованої та натуралізованої матриці та планування
     typeMatrix = 0 (лінійна форма) (n = 8)
     typeMatrix = 1 (рівняня з ефектом взаємодії) (n = 8)
-    typeMatrix = 2 (рівняня з ефектом взаємодії та квадратних членів) (n = 15)
+    typeMatrix = 2 (рівняня з ефектом взаємодії та квадратних членів) (n = 14)
     """
 
     # Список з значеннями X
@@ -104,7 +106,7 @@ def getMatrix(n, m, typeMatrix = 0):
     array_kv.append([1, 0, l, 0, 0, 0, 0, 0])
     array_kv.append([1, 0, 0, -l, 0, 0, 0, 0])
     array_kv.append([1, 0, 0, l, 0, 0, 0, 0])
-    array_kv.append([1, 0, 0, 0, 0, 0, 0, 0])
+    # array_kv.append([1, 0, 0, 0, 0, 0, 0, 0])
 
     for row in array_kv:
         row.append(round(row[1]*row[1], 4))
@@ -113,7 +115,7 @@ def getMatrix(n, m, typeMatrix = 0):
     x_norm_kv = np.array(array_kv)
 
     # Матриця натуральних значень для typeMatrix = 2
-    # x_nat_kv_1 це матриця n = 15 де стовпці x0, x1, x2, x3
+    # x_nat_kv_1 це матриця n = 14 де стовпці x0, x1, x2, x3
     x_nat_kv_1 = np.ones(shape=(len(x_norm_kv), len(x_norm_standart[0])))
 
     for i in range(len(x_norm_kv)):
@@ -133,7 +135,7 @@ def getMatrix(n, m, typeMatrix = 0):
                 x0 = (x_range[j-1][0] + x_range[j-1][1]) / 2
                 x_nat_kv_1[i][j] = round(x0, 2)
 
-    # x_nat_kv_2 це матриця n = 15 для значення еффекту взаємодії та квадратних членів
+    # x_nat_kv_2 це матриця n = 14 для значення еффекту взаємодії та квадратних членів
     x_nat_kv_2 = np.ones(shape=(len(x_norm_kv), 7))
     for i in range(len(x_nat_kv_1)):
         x_nat_kv_2[i][0] = round(x_nat_kv_1[i][1] * x_nat_kv_1[i][2], 2)
@@ -147,15 +149,15 @@ def getMatrix(n, m, typeMatrix = 0):
     # ****** ****** ****** ******
 
 
-    # Згенеровані значення Y для N = 15
-    yFull = np.zeros(shape=(15,m))
-    for i in range(15):
+    # Згенеровані значення Y для N = 14
+    yFull = np.zeros(shape=(14,m))
+    for i in range(14):
         for j in range(m):
             x1 = x_nat_kv_1[i][1]
             x2 = x_nat_kv_1[i][2]
             x3 = x_nat_kv_1[i][3]
-            y = myVariantFunction(x1, x2, x3)
-            yFull[i][j] = y + randint(1, 10) - 5
+            y = myVariantFunction(x1, x2, x3, typeMatrix)
+            yFull[i][j] = y + r.randrange(0, 10) - 5
 
     # Згенеровані значення Y для N = 8
     y = yFull[:8]
@@ -247,6 +249,15 @@ def kriteriy_fishera(y, y_aver, y_new, n, m, d):
     return S_kv_ad / S_kv_b_aver
 
 
+def kriteriy_fishera2(y, y_aver, y_new, disp_beta, n, m, d):
+    """
+    Функція для знаходження критерія фішера
+    """
+    S_kv_ad = (m / (n - d)) * sum([(y_new[i] - y_aver[i])**2 for i in range(len(y))])
+    
+    return S_kv_ad / disp_beta
+
+
 def cohren(f1, f2, q=0.05):
     """
     Функція для знаходження критерія кохрена
@@ -281,12 +292,18 @@ def getYAverage(y):
     return y_average
     
 
-def myVariantFunction(x1, x2, x3) -> float:
+def myVariantFunction(x1, x2, x3, typeMatrix) -> float:
     """
     207 variant
     """
-    result = 4.6 + 6.1 * x1 + 9.6 * x2 + 1.2 * x3 + (0.3 * x1 * x1) + (0.6 * x2 * x2) + (3.8 * x3 * x3) + (7.7 * x1 * x2) + (0.4 * x1 * x3) + (5.3 * x2 * x3) + (7.1 * x1 * x2 * x3)
-    # result = round(result, 2)
+    result = 0
+    if typeMatrix == 0:
+        # result = 4.6 + 6.1 * x1 + 9.6 * x2 + 1.2 * x3
+        result = 4.6 + 6.1 * x1 + 9.6 * x2 + 1.2 * x3 + (0.3 * x1 * x1) + (0.6 * x2 * x2) + (3.8 * x3 * x3) + (7.7 * x1 * x2) + (0.4 * x1 * x3) + (5.3 * x2 * x3) + (7.1 * x1 * x2 * x3)
+
+    else:
+        result = 4.6 + 6.1 * x1 + 9.6 * x2 + 1.2 * x3 + (0.3 * x1 * x1) + (0.6 * x2 * x2) + (3.8 * x3 * x3) + (7.7 * x1 * x2) + (0.4 * x1 * x3) + (5.3 * x2 * x3) + (7.1 * x1 * x2 * x3)
+    result = round(result, 2)
     return result
 
 
@@ -295,7 +312,40 @@ def regression(x, b):
     return y
 
 
-def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
+def bs(x, y, y_aver, n):
+    """
+    Функція для знаходження оцінки коефіціентів (Betta s)
+    """
+    res = [sum(1 * y for y in y_aver) / n]
+    for i in range(3): # 3 - ксть факторів (без X0)
+        b = sum(j[0] * j[1] for j in zip(x[:,i], y_aver)) / n
+        res.append(b)
+    return res
+
+
+def kriteriy_studenta(x, y, y_aver, n, m):
+    """
+    Функція для знаходження критерія стьюдента
+    """
+    S_kv_b = s_kv(y, y_aver, n, m)
+    S_kv_b_aver = sum(S_kv_b) / n
+ 
+    # Статиcтична оцінка дисперсії
+    s_Bs = (S_kv_b_aver / (n * m)) ** 0.5
+    Bs = bs(x, y, y_aver, n)
+
+    ts = [abs(B) / s_Bs for B in Bs]
+
+    return ts
+
+
+def main(m, iteration, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
+    if iteration == maximumIteration:
+        print("За 100 ітерацій матриця не стала адекватною")
+        return
+    else:
+        iteration += 1 
+
     fisher = partial(f.ppf, q=1-0.05)
     student = partial(t.ppf, q=1-0.025)
 
@@ -305,7 +355,7 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
     if effectVzaemodiyAndKv == True:
         # Значення для рівняня з ефектом взаємодії та квадратних членів
         matrixType = 2
-        N = 15
+        N = 14
 
     # Нормовані, натуралізовані значенння X, та Y
     x_norm, x_nat, y = getMatrix(N, m, matrixType)
@@ -313,14 +363,35 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
     # Середнє значення Y
     y_average = getYAverage(y)
 
+    # if effectVzaemodiyAndKv:
+        
+
     # Коефіціенти нормованого рівняння
-    find_coef(x_norm, y_average, norm = True)
+    # list_bi_norm = find_coef(x_norm, y_average, norm = True)
 
     # Коефіціенти натуралізованого рівняння
-    list_bi = find_coef(x_nat, y_average, norm = False)
+    # list_bi = find_coef(x_nat, y_average, norm = False)
+
+    # B = find_coefficient(x_nat, y_average, N)
+    
+    list_bi = np.linalg.lstsq(x_nat, y_average, rcond=None)[0]
+
+
+    y_perevirka = [] 
+
+    for i in range(N):
+        if effectVzaemodiyAndKv:
+            y_perevirka.append(list_bi[0] + list_bi[1] * x_nat[i][1] + list_bi[2] * x_nat[i][2] + list_bi[3] * x_nat[i][3] + list_bi[4] * x_nat[i][4] \
+            + list_bi[5]* x_nat[i][5] + list_bi[6] * x_nat[i][6] + list_bi[7] * x_nat[i][7] + list_bi[8] * x_nat[i][8] + list_bi[9] * x_nat[i][9] + list_bi[10] * x_nat[i][10])
+        else: 
+            y_perevirka.append(list_bi[0] + list_bi[1] * x_nat[i][1] + list_bi[2] * x_nat[i][2] + list_bi[3] * x_nat[i][3])
+
+    for i in range(len(y_perevirka)):
+        print(" y{} (перевірка) = {} ≈ {} ".format((i+1), y_perevirka[i], y_average[i]))
 
     # Массив значення дисперсії
-    disp_list = getDispersion(y, N)
+    # disp_list2 = getDispersion(y, N)
+    disp_list = dispersion(y, y_average, N, m)
 
     # Теоретичне значення перевірки кохрена
     Gp = max(disp_list) / sum(disp_list)
@@ -338,7 +409,6 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
         Dispersion_B = sum(disp_list) / N
         Dispersion_beta = Dispersion_B / (m * N)
         S_beta = math.sqrt(abs(Dispersion_beta))
-
         t_list = []
         for i in range(len(list_bi)):
             t_list.append(abs(list_bi[i]) / S_beta)
@@ -348,6 +418,7 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
 
         F3 = F1 * F2
         T = student(df=F3)
+
         print("t стьюдента табличне = ", T)
 
         for i in range(len(t_list)):
@@ -356,7 +427,9 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
                 list_bi[i] = 0
             else:
                 d += 1
-        
+
+        print("\nB: ", list(list_bi))
+
         print("")
         # Критерії які підходять
         Y_counted_for_Student = [] 
@@ -367,8 +440,28 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
                 + list_bi[5]* x_nat[i][5] + list_bi[6] * x_nat[i][6] + list_bi[7] * x_nat[i][7] + list_bi[8] * x_nat[i][8] + list_bi[9] * x_nat[i][9] + list_bi[10] * x_nat[i][10])
             else: 
                 Y_counted_for_Student.append(list_bi[0] + list_bi[1] * x_nat[i][1] + list_bi[2] * x_nat[i][2] + list_bi[3] * x_nat[i][3])
+        # print("--------------------------------")
+        # print("list_bi", list_bi)
+        # print("t_list", t_list)
 
-        print("Значення Y рівняння регресії", Y_counted_for_Student)
+        # for i in range(len(Y_counted_for_Student)):
+        #     print(Y_counted_for_Student[i] - y_average[i])
+        print("Значення Y після перевірки значимості коефіцієнтів:")
+        for i in range(len(y_perevirka)):
+            print(" y{} = {} ≈ {} (delta = {})".format((i+1), Y_counted_for_Student[i], y_average[i], Y_counted_for_Student[i] - y_average[i] ))
+
+
+        # for i in range(N):
+
+        #     if effectVzaemodiyAndKv:
+        #         Y_counted_for_Student.append(t_list[0] + t_list[1] * x_nat[i][1] + t_list[2] * x_nat[i][2] + t_list[3] * x_nat[i][3] + t_list[4] * x_nat[i][4] \
+        #         + t_list[5]* x_nat[i][5] + t_list[6] * x_nat[i][6] + t_list[7] * x_nat[i][7] + t_list[8] * x_nat[i][8] + t_list[9] * x_nat[i][9] + t_list[10] * x_nat[i][10])
+        #     else: 
+        #         Y_counted_for_Student.append(t_list[0] + t_list[1] * x_nat[i][1] + t_list[2] * x_nat[i][2] + t_list[3] * x_nat[i][3])
+
+
+
+        # print("Значення Y рівняння регресії", Y_counted_for_Student)
         # NASTYA PART *****************************************
 
         # y_new = []
@@ -397,30 +490,44 @@ def main(m, effectVzaemodiyAndKv = False, isSetEffectVzaemodiyAndKv = False):
         F4 = N - d
         Ft = fisher(dfn=F4, dfd=F3)
 
+
+        S2ad = abs((m/F4)*sum([(Y_counted_for_Student[i] - y_average[i])**2 for i in range(N)]))
+        Sa = sum(disp_list)/N
+        Fp = S2ad/Sa
+
         # Практичне значення перевірки фішера
-        Fp = kriteriy_fishera(y, y_average, Y_counted_for_Student, N, m, d)
+        # Fp = kriteriy_fishera(y, y_average, Y_counted_for_Student, N, m, d)
 
         effectVzaemodiyAndKv = True
         if Fp > Ft:
-            print("Модель не адекватна   Fp = ", Fp, " > Ft = ", Ft)
+            print("Модель не адекватна Fp = ", Fp, "  Ft = ", Ft)
             m = 3
             
             if isSetEffectVzaemodiyAndKv:
                 # Якщо вже було спробувано ефект взаємодії та квадратних членів повернутися на початок
-                main(m, False, False)
+                main(m, iteration, False, False)
             else:
                 print("\nСпробуємо ефект взаємодії + квадратних членів")
-                main(m, effectVzaemodiyAndKv, True)
+                main(m, iteration, effectVzaemodiyAndKv, True)
         else:   
-            print("Модель  адекватна   Fp = ", Fp, " < Ft = ", Ft)
+            print("Модель адекватна Fp = ", Fp, " < Ft = ", Ft)
 
             # print("МОДЕЛЬ АДЕКВАТНА")
 
     else:
         print("Дисперсія неоднорідна. Спробуємо з m = {}".format(m + 1))        
         m += 1
-        main(m, effectVzaemodiyAndKv, isSetEffectVzaemodiyAndKv)
+        main(m, iteration, effectVzaemodiyAndKv, isSetEffectVzaemodiyAndKv)
 
+def get_dispersion(y_aver, y):
+    return sum([(i-y_aver)**2 for i in y])/len(y)   
+
+def dispersion(y, y_aver, n, m):
+    res = []
+    for i in range(n):
+        s = sum([(y_aver[i] - y[i][j]) ** 2 for j in range(m)]) / m
+        res.append(round(s, 3))
+    return res  
 
 if __name__ == "__main__":
-    main(m)
+    main(m, 0)
